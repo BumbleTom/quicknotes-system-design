@@ -1,4 +1,15 @@
-const API_URL =
+const form =
+  document.querySelector("#note-form");
+
+const titleInput =
+  document.querySelector("#title-input");
+
+const bodyInput =
+  document.querySelector("#body-input");
+
+const submitBtn =
+  document.querySelector("#submit-btn");
+  const API_URL =
   "https://jsonplaceholder.typicode.com/posts";
 
 const loadBtn =
@@ -125,3 +136,112 @@ loadBtn.addEventListener(
   "click",
   loadNotes
 );
+async function createNote(
+  title,
+  body
+) {
+
+  submitBtn.disabled = true;
+
+  status.className = "";
+
+  status.textContent =
+    "Creating note...";
+
+  try {
+
+    const response =
+      await request(
+        API_URL,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+            "application/json"
+          },
+
+          body: JSON.stringify({
+            title: title,
+            body: body,
+            userId: 1
+          })
+        }
+      );
+
+    const newNote =
+      await response.json();
+
+    notes.unshift(newNote);
+
+    renderNotes(notes);
+
+    status.className =
+      "success";
+
+    status.textContent =
+      `Note created (status ${response.status}, id ${newNote.id}).`;
+
+    form.reset();
+
+  }
+
+  catch {
+
+    status.className =
+      "error";
+
+    status.textContent =
+      "Unable to create note.";
+
+  }
+
+  finally {
+
+    submitBtn.disabled = false;
+
+  }
+
+}
+form.addEventListener(
+  "submit",
+  event => {
+
+    event.preventDefault();
+
+    const title =
+      titleInput.value.trim();
+
+    const body =
+      bodyInput.value.trim();
+
+    if (title === "") {
+
+      status.className =
+        "error";
+
+      status.textContent =
+        "Title is required.";
+
+      return;
+    }
+
+    if (title.length > 100) {
+
+      status.className =
+        "error";
+
+      status.textContent =
+        "Title must be 100 characters or fewer.";
+
+      return;
+    }
+
+    createNote(
+      title,
+      body
+    );
+
+  }
+);
+
