@@ -1,15 +1,4 @@
-const form =
-  document.querySelector("#note-form");
-
-const titleInput =
-  document.querySelector("#title-input");
-
-const bodyInput =
-  document.querySelector("#body-input");
-
-const submitBtn =
-  document.querySelector("#submit-btn");
-  const API_URL =
+const API_URL =
   "https://jsonplaceholder.typicode.com/posts";
 
 const loadBtn =
@@ -21,26 +10,43 @@ const status =
 const notesList =
   document.querySelector("#notes-list");
 
+const form =
+  document.querySelector("#note-form");
+
+const titleInput =
+  document.querySelector("#title-input");
+
+const bodyInput =
+  document.querySelector("#body-input");
+
+const submitBtn =
+  document.querySelector("#submit-btn");
+
 let notes = [];
+
+/* =========================
+   REQUEST HELPER
+========================= */
 
 async function request(
   url,
   options = {}
 ) {
-
   const response =
     await fetch(url, options);
 
   if (!response.ok) {
-
     throw new Error(
       `HTTP Error ${response.status}`
     );
-
   }
 
   return response;
 }
+
+/* =========================
+   RENDER NOTES
+========================= */
 
 function renderNotes(list) {
 
@@ -70,20 +76,36 @@ function renderNotes(list) {
     const body =
       document.createElement("p");
 
+    const deleteBtn =
+      document.createElement("button");
+
     title.textContent =
       note.title;
 
     body.textContent =
       note.body;
 
+    deleteBtn.textContent =
+      "Delete";
+
+    deleteBtn.addEventListener(
+      "click",
+      () => deleteNote(note.id)
+    );
+
     li.appendChild(title);
     li.appendChild(body);
+    li.appendChild(deleteBtn);
 
     notesList.appendChild(li);
 
   });
 
 }
+
+/* =========================
+   LOAD NOTES (GET)
+========================= */
 
 async function loadNotes() {
 
@@ -114,7 +136,7 @@ async function loadNotes() {
 
   }
 
-  catch {
+  catch (error) {
 
     status.className =
       "error";
@@ -132,10 +154,10 @@ async function loadNotes() {
 
 }
 
-loadBtn.addEventListener(
-  "click",
-  loadNotes
-);
+/* =========================
+   CREATE NOTE (POST)
+========================= */
+
 async function createNote(
   title,
   body
@@ -158,7 +180,7 @@ async function createNote(
 
           headers: {
             "Content-Type":
-            "application/json"
+              "application/json"
           },
 
           body: JSON.stringify({
@@ -186,7 +208,7 @@ async function createNote(
 
   }
 
-  catch {
+  catch (error) {
 
     status.className =
       "error";
@@ -203,6 +225,71 @@ async function createNote(
   }
 
 }
+
+/* =========================
+   DELETE NOTE (DELETE)
+========================= */
+
+async function deleteNote(id) {
+
+  status.className = "";
+
+  status.textContent =
+    "Deleting note...";
+
+  try {
+
+    await request(
+      `${API_URL}/${id}`,
+      {
+        method: "DELETE"
+      }
+    );
+
+    /*
+      JSONPlaceholder does not
+      permanently delete data.
+
+      We remove the item from
+      the local array so the UI
+      behaves like a real app.
+    */
+
+    notes = notes.filter(
+      note => note.id !== id
+    );
+
+    renderNotes(notes);
+
+    status.className =
+      "success";
+
+    status.textContent =
+      `Deleted note ${id}.`;
+
+  }
+
+  catch (error) {
+
+    status.className =
+      "error";
+
+    status.textContent =
+      "Failed to delete note.";
+
+  }
+
+}
+
+/* =========================
+   EVENTS
+========================= */
+
+loadBtn.addEventListener(
+  "click",
+  loadNotes
+);
+
 form.addEventListener(
   "submit",
   event => {
@@ -244,4 +331,3 @@ form.addEventListener(
 
   }
 );
-
